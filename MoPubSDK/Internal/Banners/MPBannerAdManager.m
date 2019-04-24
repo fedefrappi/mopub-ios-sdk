@@ -19,6 +19,7 @@
 #import "NSMutableArray+MPAdditions.h"
 #import "NSDate+MPAdditions.h"
 #import "NSError+MPAdditions.h"
+#import "MPBaseBannerAdapter.h"
 
 @interface MPBannerAdManager ()
 
@@ -347,6 +348,12 @@
         NSTimeInterval duration = NSDate.now.timeIntervalSince1970 - self.adapterLoadStartTimestamp;
         [self.communicator sendAfterLoadUrlWithConfiguration:self.requestingConfiguration adapterLoadDuration:duration adapterLoadResult:MPAfterLoadResultAdLoaded];
 
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"AMMPBLogging"
+                                                            object:nil
+                                                          userInfo:@{
+                                                                     @"AMMPBLoggingText" : [NSString stringWithFormat:@"Banner loaded [%@]", adapter.configuration.networkType]
+                                                                     }];
+        
         MPLogAdEvent(MPLogEvent.adDidLoad, self.delegate.banner.adUnitId);
         [self presentRequestingAdapter];
     }

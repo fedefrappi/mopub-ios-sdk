@@ -216,6 +216,12 @@
     NSTimeInterval duration = NSDate.now.timeIntervalSince1970 - self.adapterLoadStartTimestamp;
     [self.communicator sendAfterLoadUrlWithConfiguration:self.requestingConfiguration adapterLoadDuration:duration adapterLoadResult:MPAfterLoadResultAdLoaded];
 
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"AMMPBLogging"
+                                                        object:nil
+                                                      userInfo:@{
+                                                                 @"AMMPBLoggingText" : [NSString stringWithFormat:@"Interstitial loaded [%@]", adapter.configuration.networkType]
+                                                                 }];
+
     MPLogAdEvent(MPLogEvent.adDidLoad, self.delegate.interstitialAdController.adUnitId);
     [self.delegate managerDidLoadInterstitial:self];
 }
@@ -252,6 +258,11 @@
 
 - (void)interstitialWillAppearForAdapter:(MPBaseInterstitialAdapter *)adapter
 {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"AMMPBLogging"
+                                                        object:nil
+                                                      userInfo:@{
+                                                                 @"AMMPBLoggingText" : [NSString stringWithFormat:@"Interstitial shown [%@]", adapter.configuration.networkType]
+                                                                 }];
     MPLogAdEvent(MPLogEvent.adWillAppear, self.delegate.interstitialAdController.adUnitId);
     [self.delegate managerWillPresentInterstitial:self];
 }

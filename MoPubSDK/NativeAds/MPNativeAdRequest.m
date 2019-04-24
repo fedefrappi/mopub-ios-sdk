@@ -31,6 +31,7 @@
 #import "MPError.h"
 #import "NSDate+MPAdditions.h"
 #import "NSError+MPAdditions.h"
+#import "MPNativeAdAdapter.h"
 
 static NSString * const kNativeAdErrorDomain = @"com.mopub.NativeAd";
 
@@ -248,6 +249,12 @@ static NSString * const kNativeAdErrorDomain = @"com.mopub.NativeAd";
     }
 
     if (error == nil) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"AMMPBLogging"
+                                                            object:nil
+                                                          userInfo:@{
+                                                                     @"AMMPBLoggingText" : [NSString stringWithFormat:@"Native ad loaded [%@]", NSStringFromClass([adObject.adAdapter class])]
+                                                                     }];
+
         MPLogAdEvent(MPLogEvent.adDidLoad, self.adUnitIdentifier);
     } else {
         MPLogAdEvent([MPLogEvent adFailedToLoadWithError:error], self.adUnitIdentifier);

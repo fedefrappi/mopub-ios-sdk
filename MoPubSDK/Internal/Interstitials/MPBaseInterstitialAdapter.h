@@ -18,6 +18,7 @@
 @interface MPBaseInterstitialAdapter : NSObject
 
 @property (nonatomic, weak) id<MPInterstitialAdapterDelegate> delegate;
+@property (nonatomic, strong) MPAdConfiguration *configuration;
 
 /*
  * Creates an adapter with a reference to an MPInterstitialAdManager.

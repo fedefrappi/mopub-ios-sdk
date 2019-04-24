@@ -36,7 +36,6 @@
 @property (nonatomic, strong) NSMutableSet *clickTrackerURLs;
 @property (nonatomic, strong) NSMutableSet *impressionTrackerURLs;
 
-@property (nonatomic, readonly, strong) id<MPNativeAdAdapter> adAdapter;
 @property (nonatomic, assign) BOOL hasTrackedImpression;
 @property (nonatomic, assign) BOOL hasTrackedClick;
 

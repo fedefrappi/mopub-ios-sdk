@@ -17,7 +17,6 @@
 
 @interface MPBaseInterstitialAdapter ()
 
-@property (nonatomic, strong) MPAdConfiguration *configuration;
 @property (nonatomic, strong) MPTimer *timeoutTimer;
 
 - (void)startTimeoutTimer;

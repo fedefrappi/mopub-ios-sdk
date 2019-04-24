@@ -34,6 +34,8 @@
  */
 @property (nonatomic, readonly) NSDictionary *properties;
 
+@property (nonatomic, readonly, strong) id<MPNativeAdAdapter> adAdapter;
+
 - (instancetype)initWithAdAdapter:(id<MPNativeAdAdapter>)adAdapter;
 
 /** @name Retrieving Ad View */
