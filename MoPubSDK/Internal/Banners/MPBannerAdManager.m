@@ -46,14 +46,6 @@
 
 @implementation MPBannerAdManager
 
-@synthesize delegate = _delegate;
-@synthesize communicator = _communicator;
-@synthesize onscreenAdapter = _onscreenAdapter;
-@synthesize requestingAdapter = _requestingAdapter;
-@synthesize refreshTimer = _refreshTimer;
-@synthesize adActionInProgress = _adActionInProgress;
-@synthesize currentOrientation = _currentOrientation;
-
 - (id)initWithDelegate:(id<MPBannerAdManagerDelegate>)delegate
 {
     self = [super init];
@@ -275,7 +267,7 @@
 
 - (void)didFailToLoadAdapterWithError:(NSError *)error
 {
-    [self.delegate managerDidFailToLoadAd];
+    [self.delegate managerDidFailToLoadAdWithError:error];
     [self scheduleRefreshTimer];
 }
 
@@ -404,10 +396,12 @@
     }
 }
 
-- (void)adapter:(MPBaseBannerAdapter *)adapter didTrackImpressionForAd:(UIView *)ad {
+- (void)adapterDidTrackImpressionForAd:(MPBaseBannerAdapter *)adapter {
     if (self.onscreenAdapter == adapter && [self shouldScheduleTimerOnImpressionDisplay]) {
         [self scheduleRefreshTimer];
     }
+
+    [self.delegate impressionDidFireWithImpressionData:self.requestingConfiguration.impressionData];
 }
 
 - (void)userActionWillBeginForAdapter:(MPBaseBannerAdapter *)adapter

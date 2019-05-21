@@ -42,13 +42,6 @@
 
 @implementation MPInterstitialAdManager
 
-@synthesize loading = _loading;
-@synthesize ready = _ready;
-@synthesize delegate = _delegate;
-@synthesize communicator = _communicator;
-@synthesize adapter = _adapter;
-@synthesize requestingConfiguration = _requestingConfiguration;
-
 - (id)initWithDelegate:(id<MPInterstitialAdManagerDelegate>)delegate
 {
     self = [super init];
@@ -304,6 +297,10 @@
 - (void)interstitialWillLeaveApplicationForAdapter:(MPBaseInterstitialAdapter *)adapter
 {
     MPLogAdEvent(MPLogEvent.adWillLeaveApplication, self.delegate.interstitialAdController.adUnitId);
+}
+
+- (void)interstitialDidReceiveImpressionEventForAdapter:(MPBaseInterstitialAdapter *)adapter {
+    [self.delegate interstitialAdManager:self didReceiveImpressionEventWithImpressionData:self.requestingConfiguration.impressionData];
 }
 
 @end
