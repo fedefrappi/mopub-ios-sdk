@@ -15,6 +15,7 @@
 #import "MPTimer.h"
 #import "MPConstants.h"
 #import "MPLogging.h"
+#import "MPStopwatch.h"
 #import "MPBannerCustomEventAdapter.h"
 #import "NSMutableArray+MPAdditions.h"
 #import "NSDate+MPAdditions.h"
@@ -31,11 +32,12 @@
 @property (nonatomic, strong) MPAdTargeting *targeting;
 @property (nonatomic, strong) NSMutableArray<MPAdConfiguration *> *remainingConfigurations;
 @property (nonatomic, strong) MPTimer *refreshTimer;
+@property (nonatomic, strong) NSURL *mostRecentlyLoadedURL; // ADF-4286: avoid infinite ad reloads
 @property (nonatomic, assign) BOOL adActionInProgress;
 @property (nonatomic, assign) BOOL automaticallyRefreshesContents;
 @property (nonatomic, assign) BOOL hasRequestedAtLeastOneAd;
 @property (nonatomic, assign) UIInterfaceOrientation currentOrientation;
-@property (nonatomic, assign) NSTimeInterval adapterLoadStartTimestamp;
+@property (nonatomic, strong) MPStopwatch *loadStopwatch;
 
 - (void)loadAdWithURL:(NSURL *)URL;
 - (void)applicationWillEnterForeground;
@@ -66,6 +68,8 @@
 
         self.automaticallyRefreshesContents = YES;
         self.currentOrientation = MPInterfaceOrientation();
+
+        _loadStopwatch = MPStopwatch.new;
     }
     return self;
 }
@@ -169,6 +173,8 @@
 
     URL = (URL) ? URL : [MPAdServerURLBuilder URLWithAdUnitID:[self.delegate adUnitId] targeting:self.targeting];
 
+    self.mostRecentlyLoadedURL = URL;
+
     [self.communicator loadURL:URL];
 }
 
@@ -217,7 +223,7 @@
 }
 
 - (void)fetchAdWithConfiguration:(MPAdConfiguration *)configuration {
-    MPLogInfo(@"Banner ad view is fetching ad network type: %@", configuration.networkType);
+    MPLogInfo(@"Banner ad view is fetching ad type: %@", configuration.adType);
 
     if (configuration.adUnitWarmingUp) {
         MPLogInfo(kMPWarmingUpErrorLogFormatWithAdUnitID, self.delegate.adUnitId);
@@ -225,7 +231,7 @@
         return;
     }
 
-    if ([configuration.networkType isEqualToString:kAdTypeClear]) {
+    if ([configuration.adType isEqualToString:kAdTypeClear]) {
         MPLogInfo(kMPClearErrorLogFormatWithAdUnitID, self.delegate.adUnitId);
         [self didFailToLoadAdapterWithError:[NSError errorWithCode:MOPUBErrorNoInventory]];
         return;
@@ -234,8 +240,8 @@
     // Notify Ad Server of the ad fetch attempt. This is fire and forget.
     [self.communicator sendBeforeLoadUrlWithConfiguration:configuration];
 
-    // Record the start time of the load.
-    self.adapterLoadStartTimestamp = NSDate.now.timeIntervalSince1970;
+    // Start the stopwatch for the adapter load.
+    [self.loadStopwatch start];
 
     self.requestingAdapter = [[MPBannerCustomEventAdapter alloc] initWithConfiguration:configuration
                                                                               delegate:self];
@@ -275,11 +281,11 @@
     [self scheduleRefreshTimer];
 }
 
-- (MPAdType)adTypeForAdServerCommunicator:(MPAdServerCommunicator *)adServerCommunicator {
-    return MPAdTypeInline;
+- (BOOL)isFullscreenAd {
+    return NO;
 }
 
-- (NSString *)adUnitIDForAdServerCommunicator:(MPAdServerCommunicator *)adServerCommunicator {
+- (NSString *)adUnitId {
     return [self.delegate adUnitId];
 }
 
@@ -341,7 +347,7 @@
         self.requestingAdapterAdContentView = ad;
 
         // Record the end of the adapter load and send off the fire and forget after-load-url tracker.
-        NSTimeInterval duration = NSDate.now.timeIntervalSince1970 - self.adapterLoadStartTimestamp;
+        NSTimeInterval duration = [self.loadStopwatch stop];
         [self.communicator sendAfterLoadUrlWithConfiguration:self.requestingConfiguration adapterLoadDuration:duration adapterLoadResult:MPAfterLoadResultAdLoaded];
 
         [[NSNotificationCenter defaultCenter] postNotificationName:@"AMMPBLogging"
@@ -359,7 +365,7 @@
 {
     // Record the end of the adapter load and send off the fire and forget after-load-url tracker
     // with the appropriate error code result.
-    NSTimeInterval duration = NSDate.now.timeIntervalSince1970 - self.adapterLoadStartTimestamp;
+    NSTimeInterval duration = [self.loadStopwatch stop];
     MPAfterLoadResult result = (error.isAdRequestTimedOutError ? MPAfterLoadResultTimeout : (adapter == nil ? MPAfterLoadResultMissingAdapter : MPAfterLoadResultError));
     [self.communicator sendAfterLoadUrlWithConfiguration:self.requestingConfiguration adapterLoadDuration:duration adapterLoadResult:result];
 
@@ -370,7 +376,8 @@
             [self fetchAdWithConfiguration:self.requestingConfiguration];
         }
         // No more configurations to try. Send new request to Ads server to get more Ads.
-        else if (self.requestingConfiguration.nextURL != nil) {
+        else if (self.requestingConfiguration.nextURL != nil
+                 && [self.requestingConfiguration.nextURL isEqual:self.mostRecentlyLoadedURL] == false) {
             [self loadAdWithURL:self.requestingConfiguration.nextURL];
         }
         // No more configurations to try and no more pages to load.
