@@ -353,7 +353,7 @@
         [[NSNotificationCenter defaultCenter] postNotificationName:@"AMMPBLogging"
                                                             object:nil
                                                           userInfo:@{
-                                                                     @"AMMPBLoggingText" : [NSString stringWithFormat:@"Banner loaded [%@]", adapter.configuration.networkType]
+                                                                     @"AMMPBLoggingText" : [NSString stringWithFormat:@"Banner loaded [%@]", NSStringFromClass([adapter class])]
                                                                      }];
         
         MPLogAdEvent(MPLogEvent.adDidLoad, self.delegate.banner.adUnitId);

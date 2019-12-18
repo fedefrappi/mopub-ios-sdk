@@ -214,7 +214,7 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"AMMPBLogging"
                                                         object:nil
                                                       userInfo:@{
-                                                                 @"AMMPBLoggingText" : [NSString stringWithFormat:@"Interstitial loaded [%@]", adapter.configuration.networkType]
+                                                                 @"AMMPBLoggingText" : [NSString stringWithFormat:@"Interstitial loaded [%@]", NSStringFromClass([adapter class])]
                                                                  }];
 
     MPLogAdEvent(MPLogEvent.adDidLoad, self.delegate.interstitialAdController.adUnitId);
@@ -257,7 +257,7 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"AMMPBLogging"
                                                         object:nil
                                                       userInfo:@{
-                                                                 @"AMMPBLoggingText" : [NSString stringWithFormat:@"Interstitial shown [%@]", adapter.configuration.networkType]
+                                                                 @"AMMPBLoggingText" : [NSString stringWithFormat:@"Interstitial shown [%@]", NSStringFromClass([adapter class])]
                                                                  }];
     MPLogAdEvent(MPLogEvent.adWillAppear, self.delegate.interstitialAdController.adUnitId);
     [self.delegate managerWillPresentInterstitial:self];
