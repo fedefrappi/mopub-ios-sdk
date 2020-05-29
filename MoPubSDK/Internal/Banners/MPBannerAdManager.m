@@ -216,12 +216,6 @@
     }
 }
 
-- (BOOL)shouldScheduleTimerOnImpressionDisplay {
-    // If `visibleImpressionTrackingEnabled` is set to `YES`, we
-    // should schedule the timer only after the impression has fired.
-    return self.requestingConfiguration.visibleImpressionTrackingEnabled;
-}
-
 - (void)fetchAdWithConfiguration:(MPAdConfiguration *)configuration {
     MPLogInfo(@"Banner ad view is fetching ad type: %@", configuration.adType);
 
@@ -313,7 +307,7 @@
 
 - (CLLocation *)location
 {
-    return self.targeting.location;
+    return nil;
 }
 
 - (BOOL)requestingAdapterIsReadyToBePresented
@@ -333,10 +327,6 @@
         [self.onscreenAdapter didDisplayAd];
 
         self.requestingAdapterAdContentView = nil;
-
-        if (![self shouldScheduleTimerOnImpressionDisplay]) {
-            [self scheduleRefreshTimer];
-        }
     }
 }
 
@@ -408,7 +398,7 @@
 }
 
 - (void)adapterDidTrackImpressionForAd:(MPBaseBannerAdapter *)adapter {
-    if (self.onscreenAdapter == adapter && [self shouldScheduleTimerOnImpressionDisplay]) {
+    if (self.onscreenAdapter == adapter) {
         [self scheduleRefreshTimer];
     }
 
